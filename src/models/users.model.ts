@@ -1,17 +1,27 @@
 import { model, Schema, Document } from 'mongoose';
 import { User } from '@interfaces/users.interface';
 
-const userSchema: Schema = new Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
+const schemaOptions = {
+  timestamps: {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   },
-  password: {
-    type: String,
-    required: true,
+};
+
+const userSchema: Schema = new Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
   },
-});
+  schemaOptions,
+);
 
 const userModel = model<User & Document>('User', userSchema);
 
