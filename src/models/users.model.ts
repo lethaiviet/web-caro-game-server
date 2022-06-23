@@ -19,6 +19,15 @@ const userSchema: Schema = new Schema(
       type: String,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ['pending', 'active'],
+      default: 'pending',
+    },
+    confirmationCode: {
+      type: String,
+      unique: true,
+    },
   },
   schemaOptions,
 );

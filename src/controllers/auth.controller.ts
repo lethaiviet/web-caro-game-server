@@ -41,6 +41,16 @@ class AuthController {
       next(error);
     }
   };
+
+  public verifyCode = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const confirmationCode = req.params.confirmationCode;
+      await this.authService.verifyConfirmationCode(confirmationCode);
+      res.status(200).json({ message: 'Verify code successfully.' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default AuthController;
