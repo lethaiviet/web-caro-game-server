@@ -11,19 +11,19 @@ import { isEmpty } from '@utils/util';
 class AuthService {
   public users = userModel;
 
-  public async signup(userData: CreateUserDto): Promise<User> {
+  public async signup(userData: CreateUserDto): Promise<[User, string]> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
 
     const findUser: User = await this.users.findOne({ email: userData.email });
     if (findUser) throw new HttpException(409, `You're email ${userData.email} already exists`);
 
     const hashedPassword = await hash(userData.password, 10);
-    const createUserData: User = await this.users.create({ ...userData, password: hashedPassword, confirmationCode: '' });
+    const createUserData: User = await this.users.create({ ...userData, password: hashedPassword });
 
     const tokenData = this.createToken(createUserData);
     await this.users.findOneAndUpdate({ email: userData.email }, { confirmationCode: tokenData.token });
 
-    return createUserData;
+    return [createUserData, tokenData.token];
   }
 
   public async login(userData: CreateUserDto): Promise<{ cookie: string; findUser: User }> {
