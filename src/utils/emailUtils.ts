@@ -41,9 +41,10 @@ class EmailUtils {
 
   async sendMessage(to: string, subject: string, html: string) {
     const mailOptions: Mail.Options = {
-      from: this.adminEmail,
+      from: `Admin-Caro-Game <${this.adminEmail}>`,
       to,
       subject,
+      text: html,
       html,
     };
 
@@ -57,7 +58,7 @@ class EmailUtils {
   async sendVerifyAccountEmail(to: string, verifyAccountUrl: string) {
     const emailTemp = getContentFile(this.verifyAccountEmailTemplate);
     const verifyAccountEmail = emailTemp.replace(/{{VERIFY_ACCOUNT_URL}}/g, verifyAccountUrl);
-    const subject = '[Caro Game] Verify your account';
+    const subject = '[Caro Game] Confirm your account';
     this.sendMessage(to, subject, verifyAccountEmail);
   }
 }
