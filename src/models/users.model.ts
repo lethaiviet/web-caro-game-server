@@ -24,7 +24,7 @@ const userSchema: Schema = new Schema(
       enum: ['pending', 'active'],
       default: 'pending',
     },
-    confirmationCode: {
+    accessToken: {
       type: String,
       unique: true,
     },

@@ -21,7 +21,7 @@ class AuthService {
     const createUserData: User = await this.users.create({ ...userData, password: hashedPassword });
 
     const tokenData = this.createToken(createUserData);
-    await this.users.findOneAndUpdate({ email: userData.email }, { confirmationCode: tokenData.token });
+    await this.users.findByIdAndUpdate(findUser._id, { accessToken: tokenData.token });
 
     return [createUserData, tokenData.token];
   }
@@ -29,7 +29,7 @@ class AuthService {
   public async login(userData: CreateUserDto): Promise<{ cookie: string; findUser: User }> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
 
-    const findUser: User = await this.users.findOne({ email: userData.email });
+    let findUser: User = await this.users.findOne({ email: userData.email });
     if (!findUser) throw new HttpException(409, `You're email ${userData.email} not found`);
 
     if (findUser.status !== 'active') throw new HttpException(401, 'Pending account, please verify your email');
@@ -39,6 +39,8 @@ class AuthService {
 
     const tokenData = this.createToken(findUser);
     const cookie = this.createCookie(tokenData);
+    const update = { accessToken: tokenData.token };
+    findUser = await this.users.findByIdAndUpdate(findUser._id, update, { new: true });
 
     return { cookie, findUser };
   }
@@ -64,7 +66,7 @@ class AuthService {
     try {
       return verify(token, SECRET_KEY) as DataStoredInToken;
     } catch (e) {
-      throw new HttpException(409, e.message);
+      throw new HttpException(404, e.message);
     }
   }
 
@@ -72,12 +74,12 @@ class AuthService {
     return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn};`;
   }
 
-  public async verifyConfirmationCode(code: string): Promise<void> {
-    const findUser: User = await this.users.findOne({ confirmationCode: code });
+  public async verifyConfirmationCode(accessToken: string): Promise<void> {
+    const findUser: User = await this.users.findOne({ accessToken: accessToken });
 
     if (!findUser) throw new HttpException(409, 'Wrong confirmation code.');
 
-    const data = this.getDataInToken(code);
+    const data = this.getDataInToken(accessToken);
     const _id = data._id;
     if (findUser._id.toString() !== _id) throw new HttpException(409, 'Wrong confirmation code');
 

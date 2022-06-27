@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { CreateUserDto } from '@dtos/users.dto';
+import { CreateUserDto, UserWithAccessToken } from '@dtos/users.dto';
 import { RequestWithUser } from '@interfaces/auth.interface';
 import { User } from '@interfaces/users.interface';
 import AuthService from '@services/auth.service';
@@ -50,6 +50,16 @@ class AuthController {
       const confirmationCode = req.params.confirmationCode;
       await this.authService.verifyConfirmationCode(confirmationCode);
       res.status(200).json({ message: 'Verify code successfully.' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public checkAccessToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userData: UserWithAccessToken = req.body;
+      await this.authService.verifyConfirmationCode(userData.accessToken);
+      res.status(200).json({ message: 'Verify token successfully.' });
     } catch (error) {
       next(error);
     }
