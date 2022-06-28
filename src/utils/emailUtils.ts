@@ -1,10 +1,10 @@
-import { EMAIL_ACCESS_TOKEN, EMAIL_CLIENT_ID, EMAIL_CLIENT_SECRET, EMAIL_REFRESH_TOKEN, FORDER_PATH } from '@/config';
+import { EMAIL_ACCESS_TOKEN, EMAIL_CLIENT_ID, EMAIL_CLIENT_SECRET, EMAIL_REFRESH_TOKEN } from '@/config';
 import { createTransport, Transporter } from 'nodemailer';
 import { logger } from './logger';
 import os from 'os';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import Mail from 'nodemailer/lib/mailer';
-import { getContentFile } from './fileUtils';
+import { FORDER_PATH, getContentFile } from './fileUtils';
 
 class EmailUtils {
   private transporter: Transporter<SMTPTransport.SentMessageInfo>;

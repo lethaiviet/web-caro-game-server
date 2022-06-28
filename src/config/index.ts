@@ -18,10 +18,3 @@ export const {
   EMAIL_REFRESH_TOKEN,
   EMAIL_ACCESS_TOKEN,
 } = process.env;
-
-export const ASSETS_FOLDER = path.join(__dirname, '..', 'assets');
-
-export const FORDER_PATH = {
-  'email-template': path.join(ASSETS_FOLDER, 'mail-template'),
-  'avatar-users': path.join(ASSETS_FOLDER, 'avatar-users'),
-};

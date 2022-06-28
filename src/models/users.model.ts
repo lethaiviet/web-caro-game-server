@@ -41,6 +41,10 @@ const userSchema: Schema = new Schema(
       type: String,
       default: '',
     },
+    avatarLocalPath: {
+      type: String,
+      default: '',
+    },
     exp: {
       type: Number,
       default: 0,

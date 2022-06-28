@@ -23,6 +23,14 @@ export class UploadAvartarDto {
 
 export class UpdateUserDto {
   @IsOptional()
+  @IsEmail()
+  public email: string;
+
+  @IsOptional()
+  @IsString()
+  public password: string;
+
+  @IsOptional()
   @IsString()
   public bio: string;
 
@@ -38,4 +46,8 @@ export class UpdateUserDto {
   @IsNumber()
   @Transform(({ value }) => Number(value))
   public exp: number;
+
+  @IsOptional()
+  @IsString()
+  public avatarLocalPath: string;
 }

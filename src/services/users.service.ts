@@ -1,9 +1,10 @@
 import { hash } from 'bcrypt';
-import { CreateUserDto } from '@dtos/users.dto';
+import { CreateUserDto, UpdateUserDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
 import { User } from '@interfaces/users.interface';
 import userModel from '@models/users.model';
 import { isEmpty, getNameFromEmail } from '@utils/util';
+import fs from 'fs-extra';
 
 class UserService {
   public users = userModel;
@@ -35,7 +36,7 @@ class UserService {
     return createUserData;
   }
 
-  public async updateUser(userId: string, userData: CreateUserDto): Promise<User> {
+  public async updateUser(userId: string, userData: UpdateUserDto): Promise<User> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
 
     if (userData.email) {
@@ -47,8 +48,8 @@ class UserService {
       const hashedPassword = await hash(userData.password, 10);
       userData = { ...userData, password: hashedPassword };
     }
-
-    const updateUserById: User = await this.users.findByIdAndUpdate(userId, { userData });
+    console.log(userData);
+    const updateUserById: User = await this.users.findByIdAndUpdate(userId, userData, { new: true });
     if (!updateUserById) throw new HttpException(409, "You're not user");
 
     return updateUserById;
@@ -59,6 +60,14 @@ class UserService {
     if (!deleteUserById) throw new HttpException(409, "You're not user");
 
     return deleteUserById;
+  }
+
+  public async uploadUserAvatar(userId: string, avatar: string, avatarLocalPath: string): Promise<void> {
+    const findUser: User = await this.users.findById(userId);
+    fs.removeSync(findUser.avatarLocalPath);
+
+    const data: UpdateUserDto = { avatar, avatarLocalPath };
+    await this.updateUser(userId, data);
   }
 }
 

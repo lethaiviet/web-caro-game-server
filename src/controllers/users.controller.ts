@@ -1,12 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import { CreateUserDto } from '@dtos/users.dto';
+import { CreateUserDto, UpdateUserDto, UploadAvartarDto } from '@dtos/users.dto';
 import { User } from '@interfaces/users.interface';
 import userService from '@services/users.service';
-import formidable, { Fields, Files } from 'formidable';
-import Formidable from 'formidable/Formidable';
-import { FORDER_PATH } from '@/config';
-import fs from 'fs-extra';
-import uploadFileMiddleware from '@/middlewares/uploadFile.middleware';
+import { getLocalFilePath, getStaticAvatarFilePath } from '@/utils/fileUtils';
 
 class UsersController {
   public userService = new userService();
@@ -46,7 +42,7 @@ class UsersController {
   public updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId: string = req.params.id;
-      const userData: CreateUserDto = req.body;
+      const userData: UpdateUserDto = req.body;
       const updateUserData: User = await this.userService.updateUser(userId, userData);
 
       res.status(200).json({ data: updateUserData, message: 'updated' });
@@ -68,8 +64,11 @@ class UsersController {
 
   public uploadAvatar = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // await uploadFileMiddleware(req, res);
-      res.status(200).json(req.files);
+      const uploadAvatarData: UploadAvartarDto = req.body;
+      const avatarLocalPath = getLocalFilePath(req);
+      const avatar = getStaticAvatarFilePath(req);
+      await this.userService.uploadUserAvatar(uploadAvatarData.userId, avatar, avatarLocalPath);
+      res.status(200).json('Uploaded new avatar');
     } catch (error) {
       next(error);
     }

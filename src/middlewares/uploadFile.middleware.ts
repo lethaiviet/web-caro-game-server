@@ -1,8 +1,8 @@
 import Multer from 'multer';
-import { FORDER_PATH } from '@/config';
 import fs from 'fs-extra';
 import path from 'path';
 import { generateRandomFileName } from '@/utils/util';
+import { FORDER_PATH } from '@/utils/fileUtils';
 
 const storage = Multer.diskStorage({
   destination: function (req, file, cb) {

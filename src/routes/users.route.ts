@@ -1,10 +1,8 @@
 import { Router } from 'express';
 import UsersController from '@controllers/users.controller';
-import { CreateUserDto, UploadAvartarDto } from '@dtos/users.dto';
+import { CreateUserDto, UpdateUserDto, UploadAvartarDto } from '@dtos/users.dto';
 import { Routes } from '@interfaces/routes.interface';
 import validationMiddleware from '@middlewares/validation.middleware';
-import multer from 'multer';
-import { FORDER_PATH } from '@/config';
 import uploadFileMiddleware from '@/middlewares/uploadFile.middleware';
 
 class UsersRoute implements Routes {
@@ -28,7 +26,7 @@ class UsersRoute implements Routes {
       this.usersController.uploadAvatar,
     );
 
-    this.router.put(`${this.path}/:id`, validationMiddleware(CreateUserDto, 'body', true), this.usersController.updateUser);
+    this.router.put(`${this.path}/:id`, validationMiddleware(UpdateUserDto, 'body'), this.usersController.updateUser);
 
     this.router.delete(`${this.path}/:id`, this.usersController.deleteUser);
   }
