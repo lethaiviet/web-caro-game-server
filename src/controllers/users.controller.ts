@@ -2,6 +2,11 @@ import { NextFunction, Request, Response } from 'express';
 import { CreateUserDto } from '@dtos/users.dto';
 import { User } from '@interfaces/users.interface';
 import userService from '@services/users.service';
+import formidable, { Fields, Files } from 'formidable';
+import Formidable from 'formidable/Formidable';
+import { FORDER_PATH } from '@/config';
+import fs from 'fs-extra';
+import uploadFileMiddleware from '@/middlewares/uploadFile.middleware';
 
 class UsersController {
   public userService = new userService();
@@ -56,6 +61,15 @@ class UsersController {
       const deleteUserData: User = await this.userService.deleteUser(userId);
 
       res.status(200).json({ data: deleteUserData, message: 'deleted' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public uploadAvatar = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // await uploadFileMiddleware(req, res);
+      res.status(200).json(req.files);
     } catch (error) {
       next(error);
     }

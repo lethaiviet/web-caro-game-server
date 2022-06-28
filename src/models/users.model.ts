@@ -19,6 +19,11 @@ const userSchema: Schema = new Schema(
       type: String,
       required: true,
     },
+    name: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     status: {
       type: String,
       enum: ['pending', 'active'],
@@ -27,6 +32,18 @@ const userSchema: Schema = new Schema(
     accessToken: {
       type: String,
       unique: true,
+    },
+    bio: {
+      type: String,
+      default: '',
+    },
+    avatar: {
+      type: String,
+      default: '',
+    },
+    exp: {
+      type: Number,
+      default: 0,
     },
   },
   schemaOptions,

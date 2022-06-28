@@ -2,8 +2,6 @@ import { EMAIL_ACCESS_TOKEN, EMAIL_CLIENT_ID, EMAIL_CLIENT_SECRET, EMAIL_REFRESH
 import { createTransport, Transporter } from 'nodemailer';
 import { logger } from './logger';
 import os from 'os';
-import fs from 'fs';
-import path from 'path';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import Mail from 'nodemailer/lib/mailer';
 import { getContentFile } from './fileUtils';

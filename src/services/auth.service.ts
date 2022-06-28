@@ -6,7 +6,7 @@ import { HttpException } from '@exceptions/HttpException';
 import { DataStoredInToken, TokenData } from '@interfaces/auth.interface';
 import { User } from '@interfaces/users.interface';
 import userModel from '@models/users.model';
-import { isEmpty } from '@utils/util';
+import { getNameFromEmail, isEmpty } from '@utils/util';
 
 class AuthService {
   public users = userModel;
@@ -18,10 +18,11 @@ class AuthService {
     if (findUser) throw new HttpException(409, `You're email ${userData.email} already exists`);
 
     const hashedPassword = await hash(userData.password, 10);
-    const createUserData: User = await this.users.create({ ...userData, password: hashedPassword });
+    const name = getNameFromEmail(userData.email);
+    const createUserData: User = await this.users.create({ ...userData, password: hashedPassword, name });
 
     const tokenData = this.createToken(createUserData);
-    await this.users.findByIdAndUpdate(findUser._id, { accessToken: tokenData.token });
+    await this.users.findByIdAndUpdate(createUserData._id, { accessToken: tokenData.token });
 
     return [createUserData, tokenData.token];
   }

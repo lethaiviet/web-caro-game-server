@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import AuthController from '@controllers/auth.controller';
-import { CreateUserDto, UserWithAccessToken } from '@dtos/users.dto';
+import { CreateUserDto, VerifyAccessTokenRequestDto } from '@dtos/users.dto';
 import { Routes } from '@interfaces/routes.interface';
 import authMiddleware from '@middlewares/auth.middleware';
 import validationMiddleware from '@middlewares/validation.middleware';
@@ -18,7 +18,7 @@ class AuthRoute implements Routes {
     this.router.post(`${this.path}signup`, validationMiddleware(CreateUserDto, 'body'), this.authController.signUp);
     this.router.post(`${this.path}login`, validationMiddleware(CreateUserDto, 'body'), this.authController.logIn);
     this.router.post(`${this.path}logout`, authMiddleware, this.authController.logOut);
-    this.router.post(`${this.path}check/token`, validationMiddleware(UserWithAccessToken, 'body'), this.authController.checkAccessToken);
+    this.router.post(`${this.path}check/token`, validationMiddleware(VerifyAccessTokenRequestDto, 'body'), this.authController.checkAccessToken);
     this.router.get(`${this.path}verify/:confirmationCode`, this.authController.verifyCode);
   }
 }

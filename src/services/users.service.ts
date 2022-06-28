@@ -3,7 +3,7 @@ import { CreateUserDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
 import { User } from '@interfaces/users.interface';
 import userModel from '@models/users.model';
-import { isEmpty } from '@utils/util';
+import { isEmpty, getNameFromEmail } from '@utils/util';
 
 class UserService {
   public users = userModel;
@@ -29,7 +29,8 @@ class UserService {
     if (findUser) throw new HttpException(409, `You're email ${userData.email} already exists`);
 
     const hashedPassword = await hash(userData.password, 10);
-    const createUserData: User = await this.users.create({ ...userData, password: hashedPassword });
+    const name = getNameFromEmail(userData.email);
+    const createUserData: User = await this.users.create({ ...userData, password: hashedPassword, name });
 
     return createUserData;
   }

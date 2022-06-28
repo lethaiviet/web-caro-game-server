@@ -1,4 +1,5 @@
-import { IsEmail, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, Matches } from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail()
@@ -8,7 +9,33 @@ export class CreateUserDto {
   public password: string;
 }
 
-export class UserWithAccessToken extends CreateUserDto {
+export class VerifyAccessTokenRequestDto {
   @IsString()
+  @IsNotEmpty()
   public accessToken: string;
+}
+
+export class UploadAvartarDto {
+  @IsString()
+  @IsNotEmpty()
+  public userId: string;
+}
+
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  public bio: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[A-Z]+$/i)
+  public name: string;
+
+  @IsOptional()
+  public avatar: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => Number(value))
+  public exp: number;
 }

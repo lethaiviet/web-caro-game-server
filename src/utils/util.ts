@@ -17,3 +17,12 @@ export const isEmpty = (value: string | number | object): boolean => {
     return false;
   }
 };
+
+export const getNameFromEmail = (email: string): string => {
+  return email.split('@')[0];
+};
+
+export const generateRandomFileName = (extname: string): string => {
+  const fileName = Date.now() + '-' + Math.round(Math.random() * 1e9);
+  return fileName + extname;
+};
