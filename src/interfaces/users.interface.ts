@@ -10,3 +10,10 @@ export interface User {
   avatarLocalPath: string;
   exp: number;
 }
+
+export type InsensitiveUserData = Omit<User, 'password' | 'avatarLocalPath' | 'accessToken'>;
+
+export interface LoginedUserData {
+  _id: string;
+  accessToken: string;
+}

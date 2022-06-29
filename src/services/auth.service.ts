@@ -4,30 +4,37 @@ import { SECRET_KEY } from '@config';
 import { CreateUserDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
 import { DataStoredInToken, TokenData } from '@interfaces/auth.interface';
-import { User } from '@interfaces/users.interface';
+import { InsensitiveUserData, User, LoginedUserData } from '@interfaces/users.interface';
 import userModel from '@models/users.model';
 import { getNameFromEmail, isEmpty } from '@utils/util';
+import TokenService from './token.service';
 
 class AuthService {
   public users = userModel;
 
-  public async signup(userData: CreateUserDto): Promise<[User, string]> {
+  public getInsensitiveUserData(userData: User): InsensitiveUserData {
+    const { _id, email, status, bio, name, avatar, exp } = userData;
+    return { _id, email, status, bio, name, avatar, exp };
+  }
+
+  public async signup(userData: CreateUserDto): Promise<[InsensitiveUserData, string]> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
 
     const findUser: User = await this.users.findOne({ email: userData.email });
     if (findUser) throw new HttpException(409, `You're email ${userData.email} already exists`);
 
-    const hashedPassword = await hash(userData.password, 10);
     const name = getNameFromEmail(userData.email);
-    const createUserData: User = await this.users.create({ ...userData, password: hashedPassword, name });
+    const hashedPassword = await hash(userData.password, 10);
+    const createUserData: User = await this.users.create({ ...userData, password: hashedPassword, name, accessToken: name });
 
-    const tokenData = this.createToken(createUserData);
+    const tokenData = TokenService.createToken(createUserData);
     await this.users.findByIdAndUpdate(createUserData._id, { accessToken: tokenData.token });
 
-    return [createUserData, tokenData.token];
+    const userDataOutput = this.getInsensitiveUserData(createUserData);
+    return [userDataOutput, tokenData.token];
   }
 
-  public async login(userData: CreateUserDto): Promise<{ cookie: string; findUser: User }> {
+  public async login(userData: CreateUserDto): Promise<{ cookie: string; findUser: LoginedUserData }> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
 
     let findUser: User = await this.users.findOne({ email: userData.email });
@@ -38,12 +45,13 @@ class AuthService {
     const isPasswordMatching: boolean = await compare(userData.password, findUser.password);
     if (!isPasswordMatching) throw new HttpException(409, "You're password not matching");
 
-    const tokenData = this.createToken(findUser);
-    const cookie = this.createCookie(tokenData);
+    const tokenData = TokenService.createToken(findUser);
     const update = { accessToken: tokenData.token };
     findUser = await this.users.findByIdAndUpdate(findUser._id, update, { new: true });
 
-    return { cookie, findUser };
+    const cookie = this.createCookie(tokenData);
+
+    return { cookie, findUser: { _id: findUser._id, accessToken: findUser.accessToken } };
   }
 
   public async logout(userData: User): Promise<User> {
@@ -55,36 +63,30 @@ class AuthService {
     return findUser;
   }
 
-  public createToken(user: User): TokenData {
-    const dataStoredInToken: DataStoredInToken = { _id: user._id };
-    const secretKey: string = SECRET_KEY;
-    const expiresIn: number = 10 * 60 * 60;
-
-    return { expiresIn, token: sign(dataStoredInToken, secretKey, { expiresIn }) };
-  }
-
-  private getDataInToken(token: string): DataStoredInToken {
-    try {
-      return verify(token, SECRET_KEY) as DataStoredInToken;
-    } catch (e) {
-      throw new HttpException(404, e.message);
-    }
-  }
-
   public createCookie(tokenData: TokenData): string {
     return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn};`;
   }
 
   public async verifyConfirmationCode(accessToken: string): Promise<void> {
     const findUser: User = await this.users.findOne({ accessToken: accessToken });
-
     if (!findUser) throw new HttpException(409, 'Wrong confirmation code.');
 
-    const data = this.getDataInToken(accessToken);
+    const data: DataStoredInToken = TokenService.verifyAndGetDataInToken(accessToken);
     const _id = data._id;
     if (findUser._id.toString() !== _id) throw new HttpException(409, 'Wrong confirmation code');
 
     await this.users.findOneAndUpdate({ _id }, { status: 'active' });
+  }
+
+  public async verifyAccessToken(accessToken: string): Promise<InsensitiveUserData> {
+    const data: DataStoredInToken = TokenService.verifyAndGetDataInToken(accessToken);
+    const _id = data._id;
+
+    const findUser: User = await this.users.findById(_id);
+    if (!findUser) throw new HttpException(404, 'Wrong Token.');
+
+    const userDataOutput = this.getInsensitiveUserData(findUser);
+    return userDataOutput;
   }
 }
 

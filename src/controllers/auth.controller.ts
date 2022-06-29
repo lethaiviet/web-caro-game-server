@@ -12,10 +12,11 @@ class AuthController {
     try {
       const userData: CreateUserDto = req.body;
       const [signUpUserData, token] = await this.authService.signup(userData);
-      res.status(201).json({ data: signUpUserData, message: 'signup' });
 
       const verifyAccountUrl = `${req.protocol}://${req.headers.host}/verify/${token}`;
       await EmailUtils.sendVerifyAccountEmail(signUpUserData.email, verifyAccountUrl);
+
+      res.status(201).json({ data: signUpUserData, message: 'signup' });
     } catch (error) {
       next(error);
     }
@@ -58,8 +59,8 @@ class AuthController {
   public checkAccessToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userData: VerifyAccessTokenRequestDto = req.body;
-      await this.authService.verifyConfirmationCode(userData.accessToken);
-      res.status(200).json({ message: 'Verify token successfully.' });
+      const findUser = await this.authService.verifyAccessToken(userData.accessToken);
+      res.status(200).json({ data: findUser, message: 'Verify token successfully.' });
     } catch (error) {
       next(error);
     }
