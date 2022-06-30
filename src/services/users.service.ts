@@ -42,8 +42,13 @@ class UserService {
     return createUserData;
   }
 
-  public async updateUser(userId: string, userData: UpdateUserDto): Promise<User> {
+  public async updateUser(userId: string, userData: UpdateUserDto): Promise<InsensitiveUserData> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
+
+    if (userData.name) {
+      const findUser: User = await this.users.findOne({ name: userData.name });
+      if (findUser && findUser._id != userId) throw new HttpException(409, `You're name ${userData.name} already exists`);
+    }
 
     if (userData.email) {
       const findUser: User = await this.users.findOne({ email: userData.email });
@@ -58,7 +63,9 @@ class UserService {
     const updateUserById: User = await this.users.findByIdAndUpdate(userId, userData, { new: true });
     if (!updateUserById) throw new HttpException(409, "You're not user");
 
-    return updateUserById;
+    const userDataOutput = UserService.getInsensitiveUserData(updateUserById);
+
+    return userDataOutput;
   }
 
   public async deleteUser(userId: string): Promise<User> {

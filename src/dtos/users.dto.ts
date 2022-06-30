@@ -36,7 +36,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^[A-Z]+$/i)
+  // @Matches(/^[A-Z]+$/i)
   public name: string;
 
   @IsOptional()

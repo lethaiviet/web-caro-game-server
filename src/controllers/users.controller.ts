@@ -68,7 +68,7 @@ class UsersController {
       const avatarLocalPath = getLocalFilePath(req);
       const avatar = getStaticAvatarFilePath(req);
       await this.userService.uploadUserAvatar(uploadAvatarData.userId, avatar, avatarLocalPath);
-      res.status(200).json('Uploaded new avatar');
+      res.status(200).json({ message: 'Uploaded new avatar', data: { avatar } });
     } catch (error) {
       next(error);
     }
