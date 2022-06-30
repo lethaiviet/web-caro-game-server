@@ -1,6 +1,4 @@
 import { hash, compare } from 'bcrypt';
-import { sign, verify } from 'jsonwebtoken';
-import { SECRET_KEY } from '@config';
 import { CreateUserDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
 import { DataStoredInToken, TokenData } from '@interfaces/auth.interface';
@@ -8,14 +6,10 @@ import { InsensitiveUserData, User, LoginedUserData } from '@interfaces/users.in
 import userModel from '@models/users.model';
 import { getNameFromEmail, isEmpty } from '@utils/util';
 import TokenService from './token.service';
+import UserService from './users.service';
 
 class AuthService {
   public users = userModel;
-
-  public getInsensitiveUserData(userData: User): InsensitiveUserData {
-    const { _id, email, status, bio, name, avatar, exp } = userData;
-    return { _id, email, status, bio, name, avatar, exp };
-  }
 
   public async signup(userData: CreateUserDto): Promise<[InsensitiveUserData, string]> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
@@ -30,7 +24,7 @@ class AuthService {
     const tokenData = TokenService.createToken(createUserData);
     await this.users.findByIdAndUpdate(createUserData._id, { accessToken: tokenData.token });
 
-    const userDataOutput = this.getInsensitiveUserData(createUserData);
+    const userDataOutput = UserService.getInsensitiveUserData(createUserData);
     return [userDataOutput, tokenData.token];
   }
 
@@ -85,7 +79,7 @@ class AuthService {
     const findUser: User = await this.users.findById(_id);
     if (!findUser) throw new HttpException(404, 'Wrong Token.');
 
-    const userDataOutput = this.getInsensitiveUserData(findUser);
+    const userDataOutput = UserService.getInsensitiveUserData(findUser);
     return userDataOutput;
   }
 }

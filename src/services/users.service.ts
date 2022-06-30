@@ -1,7 +1,7 @@
 import { hash } from 'bcrypt';
 import { CreateUserDto, UpdateUserDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
-import { User } from '@interfaces/users.interface';
+import { User, InsensitiveUserData } from '@interfaces/users.interface';
 import userModel from '@models/users.model';
 import { isEmpty, getNameFromEmail } from '@utils/util';
 import fs from 'fs-extra';
@@ -9,18 +9,24 @@ import fs from 'fs-extra';
 class UserService {
   public users = userModel;
 
+  public static getInsensitiveUserData(userData: User): InsensitiveUserData {
+    const { _id, email, status, bio, name, avatar, exp } = userData;
+    return { _id, email, status, bio, name, avatar, exp };
+  }
+
   public async findAllUser(): Promise<User[]> {
     const users: User[] = await this.users.find();
     return users;
   }
 
-  public async findUserById(userId: string): Promise<User> {
+  public async findUserById(userId: string): Promise<InsensitiveUserData> {
     if (isEmpty(userId)) throw new HttpException(400, "You're not userId");
 
     const findUser: User = await this.users.findOne({ _id: userId });
     if (!findUser) throw new HttpException(409, "You're not user");
 
-    return findUser;
+    const userDataOuput = UserService.getInsensitiveUserData(findUser);
+    return userDataOuput;
   }
 
   public async createUser(userData: CreateUserDto): Promise<User> {
@@ -48,7 +54,7 @@ class UserService {
       const hashedPassword = await hash(userData.password, 10);
       userData = { ...userData, password: hashedPassword };
     }
-    console.log(userData);
+
     const updateUserById: User = await this.users.findByIdAndUpdate(userId, userData, { new: true });
     if (!updateUserById) throw new HttpException(409, "You're not user");
 
