@@ -48,13 +48,14 @@ class AuthService {
     return { cookie, findUser: { _id: findUser._id, accessToken: findUser.accessToken } };
   }
 
-  public async logout(userData: User): Promise<User> {
+  public async logout(userData: User): Promise<InsensitiveUserData> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
 
     const findUser: User = await this.users.findOne({ email: userData.email, password: userData.password });
     if (!findUser) throw new HttpException(409, `You're email ${userData.email} not found`);
 
-    return findUser;
+    const userDataOutput = UserService.getInsensitiveUserData(findUser);
+    return userDataOutput;
   }
 
   public createCookie(tokenData: TokenData): string {
