@@ -14,9 +14,11 @@ class UserService {
     return { _id, email, status, bio, name, avatar, exp };
   }
 
-  public async findAllUser(): Promise<User[]> {
+  public async findAllUser(): Promise<InsensitiveUserData[]> {
     const users: User[] = await this.users.find();
-    return users;
+    const usersOutput: InsensitiveUserData[] = users.map(x => UserService.getInsensitiveUserData(x));
+
+    return usersOutput;
   }
 
   public async findUserById(userId: string): Promise<InsensitiveUserData> {

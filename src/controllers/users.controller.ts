@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { CreateUserDto, UpdateUserDto, UploadAvartarDto } from '@dtos/users.dto';
-import { User } from '@interfaces/users.interface';
+import { InsensitiveUserData, User } from '@interfaces/users.interface';
 import userService from '@services/users.service';
 import { getLocalFilePath, getStaticAvatarFilePath } from '@/utils/fileUtils';
 
@@ -9,7 +9,7 @@ class UsersController {
 
   public getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const findAllUsersData: User[] = await this.userService.findAllUser();
+      const findAllUsersData: InsensitiveUserData[] = await this.userService.findAllUser();
 
       res.status(200).json({ data: findAllUsersData, message: 'findAll' });
     } catch (error) {
@@ -20,7 +20,7 @@ class UsersController {
   public getUserById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId: string = req.params.id;
-      const findOneUserData: User = await this.userService.findUserById(userId);
+      const findOneUserData: InsensitiveUserData = await this.userService.findUserById(userId);
 
       res.status(200).json({ data: findOneUserData, message: 'findOne' });
     } catch (error) {

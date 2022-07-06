@@ -5,6 +5,8 @@ import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import morgan from 'morgan';
+import { createServer, Server as httpServer } from 'http';
+import { Server } from 'socket.io';
 import { connect, set } from 'mongoose';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
@@ -14,16 +16,23 @@ import { Routes } from '@interfaces/routes.interface';
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
 import { ASSETS_FOLDER } from './utils/fileUtils';
+import ChatSpace from './socket-name-spaces/chat.space';
+import socketAuthMiddleware from './middlewares/socketAuth.middleware';
+import { SocketIOService } from './services/socketio.service';
 
 class App {
   public app: express.Application;
   public env: string;
   public port: string | number;
+  public httpServer: httpServer;
+  public socketControl: Server;
 
   constructor(routes: Routes[]) {
     this.app = express();
     this.env = NODE_ENV || 'development';
     this.port = PORT || 3000;
+    this.httpServer = createServer(this.app);
+    this.socketControl = SocketIOService.getInstance().initialize(this.httpServer);
 
     this.connectToDatabase();
     this.initializeServingStaticFiles();
@@ -31,10 +40,11 @@ class App {
     this.initializeRoutes(routes);
     // this.initializeSwagger();
     this.initializeErrorHandling();
+    this.initializeSocketio();
   }
 
   public listen() {
-    this.app.listen(this.port, () => {
+    this.httpServer.listen(this.port, () => {
       logger.info(`=================================`);
       logger.info(`======= ENV: ${this.env} =======`);
       logger.info(`🚀 App listening on the port ${this.port}`);
@@ -43,7 +53,7 @@ class App {
   }
 
   public getServer() {
-    return this.app;
+    return this.httpServer;
   }
 
   private connectToDatabase() {
@@ -75,6 +85,10 @@ class App {
 
   private initializeServingStaticFiles() {
     this.app.use('/static', express.static(ASSETS_FOLDER));
+  }
+
+  private initializeSocketio() {
+    this.socketControl.of('/chat').use(socketAuthMiddleware).on('connection', ChatSpace.initConnection);
   }
 
   private initializeSwagger() {

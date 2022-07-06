@@ -1,3 +1,5 @@
+import { type } from 'os';
+
 export interface User {
   _id: string;
   email: string;
@@ -16,4 +18,13 @@ export type InsensitiveUserData = Omit<User, 'password' | 'avatarLocalPath' | 'a
 export interface LoginedUserData {
   _id: string;
   accessToken: string;
+}
+
+type Status = 'Online' | 'Offline';
+
+export interface UserStates {
+  _id: string;
+  status: Status;
+  name: string;
+  avatar: string;
 }
