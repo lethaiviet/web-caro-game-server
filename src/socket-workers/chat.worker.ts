@@ -73,15 +73,17 @@ class ChatWorker {
     const userService: UserService = new UserService();
     const users: InsensitiveUserData[] = await userService.findAllUser();
 
-    const usersStates: UserStates[] = users.map(x => {
-      const status = ChatWorker.onlineUsersID.has(x._id.toString()) ? 'Online' : 'Offline';
-      return {
-        _id: x._id,
-        name: x.name,
-        avatar: x.avatar,
-        status,
-      };
-    });
+    const usersStates: UserStates[] = users
+      .filter(x => x._id.toString() !== this.getCurrentUserId())
+      .map(x => {
+        const status = ChatWorker.onlineUsersID.has(x._id.toString()) ? 'Online' : 'Offline';
+        return {
+          _id: x._id,
+          name: x.name,
+          avatar: x.avatar,
+          status,
+        };
+      });
 
     this.sendDataOnlyCurrentUser('chat:response:get-all-users-status', usersStates);
   }
