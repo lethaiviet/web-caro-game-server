@@ -1,5 +1,5 @@
 import ChatWorker from '@/socket-workers/chat.worker';
-import { Server, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 
 class ChatSpace {
   initConnection(socket: Socket) {

@@ -49,6 +49,8 @@ const userSchema: Schema = new Schema(
       type: Number,
       default: 0,
     },
+    privateChatRooms: [{ type: Schema.Types.ObjectId, ref: 'PrivateChatRoom' }],
+    groupChatRooms: [{ type: Schema.Types.ObjectId, ref: 'GroupChatRoom' }],
   },
   schemaOptions,
 );

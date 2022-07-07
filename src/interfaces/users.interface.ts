@@ -1,5 +1,3 @@
-import { type } from 'os';
-
 export interface User {
   _id: string;
   email: string;

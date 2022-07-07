@@ -1,5 +1,7 @@
+import { AllMessageInRoom, SimpleMessage } from '@/interfaces/chat-messages.interface';
 import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from '@/interfaces/socket.interface';
 import { InsensitiveUserData, User, UserStates } from '@/interfaces/users.interface';
+import PrivateChatRoomsService from '@/services/private-chat-rooms.service';
 import { SocketIOService } from '@/services/socketio.service';
 import UserService from '@/services/users.service';
 import { Socket } from 'socket.io';
@@ -7,6 +9,7 @@ import { Socket } from 'socket.io';
 class ChatWorker {
   private socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
   private static onlineUsersID = new Set<string>();
+  private privateChatRoomsService = new PrivateChatRoomsService();
 
   constructor(socket: Socket) {
     this.socket = socket;
@@ -49,6 +52,24 @@ class ChatWorker {
     this.socket.on('disconnect', () => this.disconnect());
     this.socket.on('chat:action:join-room', id => this.joinRoom(id));
     this.socket.on('chat:request:get-all-users-status', async () => await this.getAllUserStatus());
+    this.socket.on('chat:request:send-message-from-private-chat-room', async simpleMsg => await this.sendMessage(simpleMsg));
+    this.socket.on(
+      'chat:request:get-all-messages-from-private-chat-room',
+      async anotherUserId => await this.getAllMessageFromPrivateChat(anotherUserId),
+    );
+  }
+
+  private async getAllMessageFromPrivateChat(anotherUserId: string) {
+    const currentUserId = this.getCurrentUserId();
+    const messages: AllMessageInRoom = await this.privateChatRoomsService.getAllMsgInRoom(anotherUserId, currentUserId);
+
+    this.sendDataOnlyCurrentUser('chat:response:get-all-messages-from-private-chat-room', messages);
+  }
+
+  private async sendMessage(simpleMsg: SimpleMessage) {
+    const commonMsg = { ...simpleMsg, from: this.getCurrentUserId() };
+    await this.privateChatRoomsService.addChatMsgToRoom(commonMsg);
+    this.socket.broadcast.to(commonMsg.to).emit('chat:response:send-message-from-private-chat-room', commonMsg.content);
   }
 
   private joinSingleRoom() {
@@ -56,12 +77,21 @@ class ChatWorker {
     this.socket.join(id);
   }
 
-  private sendDataOnlyCurrentUser(key: string, value: any) {
-    const currentUserId = this.getCurrentUserId();
+  private async sendDataToRoom(roomName: string, key: string, value: any) {
     const socketIOService = SocketIOService.getInstance();
     if (socketIOService.ready) {
-      socketIOService.sendMessageChatSpace(currentUserId, key, value);
+      socketIOService.sendMessageChatSpace(roomName, key, value);
     }
+  }
+
+  private sendDataOnlyCurrentUser(key: string, value: any) {
+    const currentUserId = this.getCurrentUserId();
+    this.sendDataToRoom(currentUserId, key, value);
+  }
+
+  private hasRoom(roomName: string): boolean {
+    const socketIOService = SocketIOService.getInstance();
+    return socketIOService.ready && socketIOService.checkExistRoomChatSpace(roomName);
   }
 
   private joinRoom(id: string): void {

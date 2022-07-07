@@ -43,7 +43,7 @@ class UsersController {
     try {
       const userId: string = req.params.id;
       const userData: UpdateUserDto = req.body;
-      const updateUserData: User = await this.userService.updateUser(userId, userData);
+      const updateUserData: InsensitiveUserData = await this.userService.updateUser(userId, userData);
 
       res.status(200).json({ data: updateUserData, message: 'updated' });
     } catch (error) {

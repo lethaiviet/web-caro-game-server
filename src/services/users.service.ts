@@ -84,6 +84,10 @@ class UserService {
     const data: UpdateUserDto = { avatar, avatarLocalPath };
     await this.updateUser(userId, data);
   }
+
+  public async joinPrivateChatRoom(userId: string, roomId: string): Promise<void> {
+    await this.users.findByIdAndUpdate(userId, { $push: { privateChatRooms: roomId } });
+  }
 }
 
 export default UserService;

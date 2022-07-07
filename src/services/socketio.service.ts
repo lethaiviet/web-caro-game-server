@@ -46,4 +46,9 @@ export class SocketIOService {
   public sendMessageAll(key: string, message: any) {
     this.getSocketControl().emit(key, message);
   }
+
+  public checkExistRoomChatSpace(roomName: string) {
+    const isExist = this.getSocketControl().of('/chat').adapter.rooms.has(roomName);
+    return isExist;
+  }
 }
