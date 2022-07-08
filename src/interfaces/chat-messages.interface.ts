@@ -1,6 +1,7 @@
 export interface ChatMessager {
   _id: string;
-  sender: string;
+  senderId: string;
+  senderName: string;
   content: string;
 }
 
@@ -17,7 +18,7 @@ export interface DetailMessage extends ChatMessager {
   created_at: string;
 }
 
-export interface AllMessageInRoom {
+export interface AllMessagesInRoom {
   roomName: string;
   messages: DetailMessage[];
 }

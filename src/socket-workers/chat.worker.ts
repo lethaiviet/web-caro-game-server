@@ -1,4 +1,4 @@
-import { AllMessageInRoom, SimpleMessage } from '@/interfaces/chat-messages.interface';
+import { AllMessagesInRoom, DetailMessage, SimpleMessage } from '@/interfaces/chat-messages.interface';
 import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from '@/interfaces/socket.interface';
 import { InsensitiveUserData, User, UserStates } from '@/interfaces/users.interface';
 import PrivateChatRoomsService from '@/services/private-chat-rooms.service';
@@ -61,15 +61,15 @@ class ChatWorker {
 
   private async getAllMessageFromPrivateChat(anotherUserId: string) {
     const currentUserId = this.getCurrentUserId();
-    const messages: AllMessageInRoom = await this.privateChatRoomsService.getAllMsgInRoom(anotherUserId, currentUserId);
+    const messages: AllMessagesInRoom = await this.privateChatRoomsService.getAllMsgInRoom(currentUserId, anotherUserId);
 
     this.sendDataOnlyCurrentUser('chat:response:get-all-messages-from-private-chat-room', messages);
   }
 
   private async sendMessage(simpleMsg: SimpleMessage) {
     const commonMsg = { ...simpleMsg, from: this.getCurrentUserId() };
-    await this.privateChatRoomsService.addChatMsgToRoom(commonMsg);
-    this.socket.broadcast.to(commonMsg.to).emit('chat:response:send-message-from-private-chat-room', commonMsg.content);
+    const newMessage: DetailMessage = await this.privateChatRoomsService.addChatMsgToRoom(commonMsg);
+    this.socket.broadcast.to(commonMsg.to).emit('chat:response:send-message-from-private-chat-room', newMessage);
   }
 
   private joinSingleRoom() {

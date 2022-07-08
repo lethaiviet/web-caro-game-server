@@ -1,4 +1,4 @@
-import { AllMessageInRoom, SimpleMessage } from './chat-messages.interface';
+import { AllMessagesInRoom, DetailMessage, SimpleMessage } from './chat-messages.interface';
 import { User, UserStates } from './users.interface';
 
 export interface ServerToClientEvents {
@@ -7,8 +7,8 @@ export interface ServerToClientEvents {
   'chat:inform:users-online-status': (data: string) => void;
   'chat:inform:get-all-users-status': (data: UserStates[]) => void;
   'chat:response:get-all-users-status': (data: UserStates[]) => void;
-  'chat:response:send-message-from-private-chat-room': (data: string) => void;
-  'chat:response:get-all-messages-from-private-chat-room': (allMessageInRoom: AllMessageInRoom) => void;
+  'chat:response:send-message-from-private-chat-room': (detailMessage: DetailMessage) => void;
+  'chat:response:get-all-messages-from-private-chat-room': (allMessageInRoom: AllMessagesInRoom) => void;
 }
 
 export interface ClientToServerEvents {
