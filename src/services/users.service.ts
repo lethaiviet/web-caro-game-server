@@ -5,9 +5,15 @@ import { User, InsensitiveUserData } from '@interfaces/users.interface';
 import userModel from '@models/users.model';
 import { isEmpty, getNameFromEmail } from '@utils/util';
 import fs from 'fs-extra';
+import { AllMessagesInRoom } from '@/interfaces/chat-messages.interface';
+import PrivateChatRoomsService from './private-chat-rooms.service';
+import mongoose from 'mongoose';
+import { QUERY_GET_ALL_MSG_FROM_ALL_PRIVATE_ROOMS_BY_USER_ID } from '@/utils/queryDB';
 
 class UserService {
   public users = userModel;
+  public privateChatRoomService = new PrivateChatRoomsService();
+  public ObjectId = mongoose.Types.ObjectId;
 
   public static getInsensitiveUserData(userData: User): InsensitiveUserData {
     const { _id, email, status, bio, name, avatar, exp } = userData;
@@ -87,6 +93,22 @@ class UserService {
 
   public async joinPrivateChatRoom(userId: string, roomId: string): Promise<void> {
     await this.users.findByIdAndUpdate(userId, { $push: { privateChatRooms: roomId } });
+  }
+
+  public async getAllMsgFromAllPrivateRooms(userId: string): Promise<AllMessagesInRoom[]> {
+    const findUser: User = await this.users.findById(userId);
+
+    let result: AllMessagesInRoom[] = [];
+    if (findUser && findUser.privateChatRooms.length > 0) {
+      result = await this.users.aggregate<AllMessagesInRoom>(QUERY_GET_ALL_MSG_FROM_ALL_PRIVATE_ROOMS_BY_USER_ID(userId));
+
+      result = result.map(x => {
+        const roomName = x.roomName.replace('-vs-', '').replace(userId, '');
+        return { ...x, roomName };
+      });
+    }
+
+    return result;
   }
 }
 

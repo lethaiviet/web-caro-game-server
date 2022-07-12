@@ -13,8 +13,8 @@ const schemaOptions = {
 const chatMessagesSchema: Schema = new Schema(
   {
     content: { type: String },
-    senderName: { type: String },
     senderId: { type: Schema.Types.ObjectId, ref: 'User' },
+    readBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   },
   schemaOptions,
 );
@@ -23,7 +23,7 @@ chatMessagesSchema.pre<ChatMessager>('save', async function (next) {
   const findUser: User = await userModel.findById(this.senderId);
 
   if (findUser) {
-    this.senderName = findUser.name;
+    this.readBy.push(this.senderId);
   }
   next();
 });

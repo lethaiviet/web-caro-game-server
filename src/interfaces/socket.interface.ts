@@ -8,7 +8,8 @@ export interface ServerToClientEvents {
   'chat:inform:get-all-users-status': (data: UserStates[]) => void;
   'chat:response:get-all-users-status': (data: UserStates[]) => void;
   'chat:response:send-message-from-private-chat-room': (detailMessage: DetailMessage) => void;
-  'chat:response:get-all-messages-from-private-chat-room': (allMessageInRoom: AllMessagesInRoom) => void;
+  'chat:response:get-all-messages-from-private-chat-room': (allMessagesInRoom: AllMessagesInRoom) => void;
+  'chat:response:get-all-messages-from-all-private-chat-rooms': (allMessages: AllMessagesInRoom[]) => void;
 }
 
 export interface ClientToServerEvents {
@@ -17,9 +18,11 @@ export interface ClientToServerEvents {
   'chat:action:send-private-messages': (roomId: string, message: string) => void;
   'chat:action:send-global-messages': (roomId: string, message: string) => void;
   'chat:action:join-private-room': (anotherUserId: string) => void;
+  'chat:action:mark-as-read-all-messages-from-private-chat-room': (anotherUserId: string) => void;
   'chat:request:get-all-users-status': () => void;
   'chat:request:send-message-from-private-chat-room': (simpleMsg: SimpleMessage) => void;
   'chat:request:get-all-messages-from-private-chat-room': (anotherUserId: string) => void;
+  'chat:request:get-all-messages-from-all-private-chat-rooms': () => void;
 }
 
 export interface InterServerEvents {

@@ -9,9 +9,10 @@ export interface User {
   avatar: string;
   avatarLocalPath: string;
   exp: number;
+  privateChatRooms: string[];
 }
 
-export type InsensitiveUserData = Omit<User, 'password' | 'avatarLocalPath' | 'accessToken'>;
+export type InsensitiveUserData = Omit<User, 'password' | 'avatarLocalPath' | 'accessToken' | 'privateChatRooms'>;
 
 export interface LoginedUserData {
   _id: string;

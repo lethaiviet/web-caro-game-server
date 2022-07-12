@@ -1,8 +1,8 @@
 export interface ChatMessager {
   _id: string;
   senderId: string;
-  senderName: string;
   content: string;
+  readBy: string[];
 }
 
 export interface SimpleMessage {
@@ -21,4 +21,5 @@ export interface DetailMessage extends ChatMessager {
 export interface AllMessagesInRoom {
   roomName: string;
   messages: DetailMessage[];
+  countNotification: number;
 }

@@ -17,10 +17,14 @@ class ChatMessageService {
   public async getMessages(messagesId: string[]): Promise<DetailMessage[]> {
     const findMessage: DetailMessage[] = await this.chatMessage.find({ _id: messagesId }, null, {
       sort: { created_at: -1 },
-      limit: 10,
+      limit: 20,
     });
 
     return findMessage;
+  }
+
+  public async markMessagesAsRead(messagesId: string[], readerId: string): Promise<void> {
+    await this.chatMessage.updateMany({ _id: { $in: messagesId }, readBy: { $ne: readerId } }, { $push: { readBy: readerId } });
   }
 }
 

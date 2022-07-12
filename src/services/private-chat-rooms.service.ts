@@ -41,14 +41,25 @@ class PrivateChatRoomsService {
     const findRoom: ChatRoom = await this.getOrCreateRoom(from, to);
 
     let messages: DetailMessage[] = [];
+    let countNotification = 0;
     if (findRoom.messages.length > 0) {
       messages = await this.chatMessageService.getMessages(findRoom.messages);
+      countNotification = messages.reduce((total, message) => (total += message.readBy.includes(from) ? 0 : 1), 0);
     }
 
     return {
       roomName: to,
       messages,
+      countNotification,
     };
+  }
+
+  public async markAsReadAllMsgInRoom(from: string, to: string): Promise<void> {
+    const findRoom: ChatRoom = await this.getOrCreateRoom(from, to);
+    const messagesId: string[] = findRoom.messages;
+    if (messagesId.length > 0) {
+      await this.chatMessageService.markMessagesAsRead(messagesId, from);
+    }
   }
 }
 

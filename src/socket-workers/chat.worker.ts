@@ -10,6 +10,7 @@ class ChatWorker {
   private socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
   private static onlineUsersID = new Set<string>();
   private privateChatRoomsService = new PrivateChatRoomsService();
+  private userService = new UserService();
 
   constructor(socket: Socket) {
     this.socket = socket;
@@ -57,6 +58,25 @@ class ChatWorker {
       'chat:request:get-all-messages-from-private-chat-room',
       async anotherUserId => await this.getAllMessageFromPrivateChat(anotherUserId),
     );
+
+    this.socket.on('chat:request:get-all-messages-from-all-private-chat-rooms', async () => await this.getAllMessageFromAllPrivateChat());
+    this.socket.on(
+      'chat:action:mark-as-read-all-messages-from-private-chat-room',
+      async anotherUserId => await this.markAsReadAllMsgFromPrivateChat(anotherUserId),
+    );
+  }
+
+  private async markAsReadAllMsgFromPrivateChat(anotherUserId: string) {
+    const currentUserId = this.getCurrentUserId();
+    await this.privateChatRoomsService.markAsReadAllMsgInRoom(currentUserId, anotherUserId);
+    await this.getAllMessageFromPrivateChat(anotherUserId);
+  }
+
+  private async getAllMessageFromAllPrivateChat() {
+    const currentUserId = this.getCurrentUserId();
+    const allMessages: AllMessagesInRoom[] = await this.userService.getAllMsgFromAllPrivateRooms(currentUserId);
+
+    this.sendDataOnlyCurrentUser('chat:response:get-all-messages-from-all-private-chat-rooms', allMessages);
   }
 
   private async getAllMessageFromPrivateChat(anotherUserId: string) {
