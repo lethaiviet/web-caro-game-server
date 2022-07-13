@@ -1,5 +1,6 @@
 import { Server, ServerOptions } from 'socket.io';
 import { Server as HttpServer } from 'http';
+import { SocketClientEvents, InterServerEvents, SocketServerEvents, SocketServerEventsName, SocketData } from '@/interfaces/socket.interface';
 
 export class SocketIOService {
   private static instance: SocketIOService | undefined;
@@ -27,7 +28,7 @@ export class SocketIOService {
     return SocketIOService.server !== null;
   }
 
-  public getSocketControl(): Server {
+  public getSocketControl(): Server<SocketClientEvents, SocketServerEvents, InterServerEvents, SocketData> {
     if (!SocketIOService.server) {
       throw new Error('IO server requested before initialization');
     }
@@ -35,16 +36,16 @@ export class SocketIOService {
     return SocketIOService.server;
   }
 
-  public sendMessage(spacename: string, roomId: string | string[], key: string, message: any) {
+  public sendMessage(spacename: string, roomId: string | string[], key: SocketServerEventsName, message: any) {
     this.getSocketControl().of(spacename).to(roomId).emit(key, message);
   }
 
-  public sendMessageChatSpace(roomId: string | string[], key: string, message: any) {
-    this.getSocketControl().of('/chat').to(roomId).emit(key, message);
+  public sendMessageChatSpace(roomId: string | string[], key: SocketServerEventsName, message: any) {
+    if (this.ready()) this.getSocketControl().of('/chat').to(roomId).emit(key, message);
   }
 
-  public sendMessageAll(key: string, message: any) {
-    this.getSocketControl().emit(key, message);
+  public sendMessageAllChatSpace(event: SocketServerEventsName, data: any) {
+    if (this.ready()) this.getSocketControl().of('/chat').emit(event, data);
   }
 
   public checkExistRoomChatSpace(roomName: string) {

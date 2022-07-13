@@ -37,7 +37,7 @@ class PrivateChatRoomsService {
     return message;
   }
 
-  public async getAllMsgInRoom(from: string, to: string): Promise<AllMessagesInRoom> {
+  public async getAllMessagesInRoom(from: string, to: string): Promise<AllMessagesInRoom> {
     const findRoom: ChatRoom = await this.getOrCreateRoom(from, to);
 
     let messages: DetailMessage[] = [];
@@ -54,7 +54,7 @@ class PrivateChatRoomsService {
     };
   }
 
-  public async markAsReadAllMsgInRoom(from: string, to: string): Promise<void> {
+  public async markAsReadAllMessagesInRoom(from: string, to: string): Promise<void> {
     const findRoom: ChatRoom = await this.getOrCreateRoom(from, to);
     const messagesId: string[] = findRoom.messages;
     if (messagesId.length > 0) {

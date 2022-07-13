@@ -1,7 +1,7 @@
 import { hash } from 'bcrypt';
 import { CreateUserDto, UpdateUserDto } from '@dtos/users.dto';
 import { HttpException } from '@exceptions/HttpException';
-import { User, InsensitiveUserData } from '@interfaces/users.interface';
+import { User, InsensitiveUserData, UserStates } from '@interfaces/users.interface';
 import userModel from '@models/users.model';
 import { isEmpty, getNameFromEmail } from '@utils/util';
 import fs from 'fs-extra';
@@ -95,7 +95,7 @@ class UserService {
     await this.users.findByIdAndUpdate(userId, { $push: { privateChatRooms: roomId } });
   }
 
-  public async getAllMsgFromAllPrivateRooms(userId: string): Promise<AllMessagesInRoom[]> {
+  public async getAllPrivateMessagesInAllRooms(userId: string): Promise<AllMessagesInRoom[]> {
     const findUser: User = await this.users.findById(userId);
 
     let result: AllMessagesInRoom[] = [];
@@ -109,6 +109,24 @@ class UserService {
     }
 
     return result;
+  }
+
+  public async getAllUserStatus(listUsersIdOnline: Set<string>, exclusiveUserId = ''): Promise<UserStates[]> {
+    const users: InsensitiveUserData[] = await this.findAllUser();
+
+    const usersStates: UserStates[] = users
+      .filter(x => x._id.toString() !== exclusiveUserId)
+      .map(x => {
+        const status = listUsersIdOnline.has(x._id.toString()) ? 'Online' : 'Offline';
+        return {
+          _id: x._id,
+          name: x.name,
+          avatar: x.avatar,
+          status,
+        };
+      });
+
+    return usersStates;
   }
 }
 
