@@ -22,18 +22,21 @@ class ChatWorker {
     console.log(`[ChatWorker] User - ${this.socket.data.user.name} - join and the room has total ${ChatWorker.onlineUsersID.size} users online`);
 
     this.joinSingleRoom();
-    this.socket.on('disconnect', () => this.disconnect());
-    this.socket.on('chat:acknowledgement:get-all-users-status', async callback => await this.sendAllUserStatusToCurrentUser(callback));
-    this.socket.on('chat:request:send-private-message', async simpleMsg => await this.sendPrivateMessage(simpleMsg));
-    this.socket.on(
-      'chat:request:get-all-private-messages-in-room',
-      async anotherUserId => await this.sendAllPrivateMessageInRoomToCurrentUser(anotherUserId),
-    );
-    this.socket.on('chat:request:get-all-private-messages-in-all-rooms', async () => await this.sendAllPrivateMessagesInAllRoomsToCurrentUser());
     this.socket.on(
       'chat:action:mark-as-read-all-private-messages-in-room',
       async anotherUserId => await this.markAsReadAllPrivateMessagesInRoom(anotherUserId),
     );
+    this.socket.on('chat:action:send-private-message', async simpleMsg => await this.sendPrivateMessage(simpleMsg));
+    this.socket.on(
+      'chat:request:get-all-private-messages-in-room',
+      async anotherUserId => await this.sendAllPrivateMessageInRoomToCurrentUser(anotherUserId),
+    );
+    this.socket.on('chat:acknowledgement:get-all-users-status', async callback => await this.sendAllUserStatusToCurrentUser(callback));
+    this.socket.on(
+      'chat:acknowledgement:get-all-private-messages-in-all-rooms',
+      async callback => await this.sendAllPrivateMessagesInAllRoomsToCurrentUser(callback),
+    );
+    this.socket.on('disconnect', () => this.disconnect());
 
     this.informAllUsersAboutStatus();
   }
@@ -53,11 +56,10 @@ class ChatWorker {
     await this.sendAllPrivateMessageInRoomToCurrentUser(anotherUserId);
   }
 
-  private async sendAllPrivateMessagesInAllRoomsToCurrentUser() {
+  private async sendAllPrivateMessagesInAllRoomsToCurrentUser(callback: (data: AllMessagesInRoom[]) => void) {
     const currentUserId = this.getCurrentUserId();
     const allMessages: AllMessagesInRoom[] = await this.userService.getAllPrivateMessagesInAllRooms(currentUserId);
-
-    this.sendDataToCurrentUser('chat:response:get-all-private-messages-in-all-rooms', allMessages);
+    callback(allMessages);
   }
 
   private async sendAllPrivateMessageInRoomToCurrentUser(anotherUserId: string) {
@@ -70,7 +72,7 @@ class ChatWorker {
   private async sendPrivateMessage(simpleMsg: SimpleMessage) {
     const commonMsg = { ...simpleMsg, from: this.getCurrentUserId() };
     const newMessage: DetailMessage = await this.privateChatRoomsService.addChatMsgToRoom(commonMsg);
-    this.socket.broadcast.to(commonMsg.to).emit('chat:response:send-private-message', newMessage);
+    this.socket.broadcast.to(commonMsg.to).emit('chat:inform:get-new-private-message', newMessage);
   }
 
   private joinSingleRoom() {
