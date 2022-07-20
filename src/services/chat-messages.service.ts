@@ -1,4 +1,4 @@
-import { ChatMessager, DetailMessage } from '@/interfaces/chat-messages.interface';
+import { DetailMessage } from '@/interfaces/chat-messages.interface';
 import chatMessagerModel from '@/models/chat-messages.models';
 
 class ChatMessageService {

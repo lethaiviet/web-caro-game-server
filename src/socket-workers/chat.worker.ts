@@ -1,27 +1,28 @@
 import { AllMessagesInRoom, DetailMessage, SimpleMessage } from '@/interfaces/chat-messages.interface';
-import { SocketClientEvents, InterServerEvents, SocketServerEvents, SocketData, SocketServerEventsName } from '@/interfaces/socket.interface';
-import { User, UserStates } from '@/interfaces/users.interface';
+import { UserStates } from '@/interfaces/users.interface';
 import PrivateChatRoomsService from '@/services/private-chat-rooms.service';
-import { SocketIOService } from '@/services/socketio.service';
 import UserService from '@/services/users.service';
 import { Socket } from 'socket.io';
+import BaseWorker from './base.worker';
 
-class ChatWorker {
-  private socket: Socket<SocketClientEvents, SocketServerEvents, InterServerEvents, SocketData>;
+class ChatWorker extends BaseWorker {
   private static onlineUsersID = new Set<string>();
   private privateChatRoomsService = new PrivateChatRoomsService();
   private userService = new UserService();
 
   constructor(socket: Socket) {
-    this.socket = socket;
+    super(socket);
     this.init();
   }
 
   private init() {
     this.addUserIdIntoList();
+    this.addListeners();
+    this.informAllUsersAboutStatus();
     console.log(`[ChatWorker] User - ${this.socket.data.user.name} - join and the room has total ${ChatWorker.onlineUsersID.size} users online`);
+  }
 
-    this.joinSingleRoom();
+  private addListeners() {
     this.socket.on(
       'chat:action:mark-as-read-all-private-messages-in-room',
       async anotherUserId => await this.markAsReadAllPrivateMessagesInRoom(anotherUserId),
@@ -37,8 +38,6 @@ class ChatWorker {
       async callback => await this.sendAllPrivateMessagesInAllRoomsToCurrentUser(callback),
     );
     this.socket.on('disconnect', () => this.disconnect());
-
-    this.informAllUsersAboutStatus();
   }
 
   private informAllUsersAboutStatus() {
@@ -66,7 +65,7 @@ class ChatWorker {
     const currentUserId = this.getCurrentUserId();
     const messages: AllMessagesInRoom = await this.privateChatRoomsService.getAllMessagesInRoom(currentUserId, anotherUserId);
 
-    this.sendDataToCurrentUser('chat:response:get-all-private-messages-in-room', messages);
+    this.sendDataToCurrentUserOnChatSpace('chat:response:get-all-private-messages-in-room', messages);
   }
 
   private async sendPrivateMessage(simpleMsg: SimpleMessage) {
@@ -75,33 +74,17 @@ class ChatWorker {
     this.socket.broadcast.to(commonMsg.to).emit('chat:inform:get-new-private-message', newMessage);
   }
 
-  private joinSingleRoom() {
-    const id = this.getCurrentUserId();
-    this.socket.join(id);
-  }
-
   private async sendAllUserStatusToCurrentUser(callback: (data: UserStates[]) => void): Promise<void> {
     const usersStates: UserStates[] = await this.getAllUserStatus();
     callback(usersStates);
-    // this.sendDataToCurrentUser('chat:response:get-all-users-status', usersStates);
   }
 
   private disconnect() {
     this.removeUserIdFromList();
     this.informAllUsersAboutStatus();
-    this.socket.removeAllListeners();
-    this.socket.disconnect(true);
+    this.disconnectSocket();
 
     console.log(`[ChatWorker] User - ${this.socket.data.user.name} - quite and the room has total ${ChatWorker.onlineUsersID.size} users online`);
-  }
-
-  private getCurrentUser(): User {
-    return this.socket.data.user;
-  }
-
-  private getCurrentUserId(): string {
-    const currentUser = this.getCurrentUser();
-    return currentUser._id.toString();
   }
 
   private addUserIdIntoList(): void {
@@ -116,11 +99,6 @@ class ChatWorker {
 
   private async getAllUserStatus(): Promise<UserStates[]> {
     return await this.userService.getAllUserStatus(ChatWorker.onlineUsersID);
-  }
-
-  private sendDataToCurrentUser(key: SocketServerEventsName, value: any) {
-    const currentUserId = this.getCurrentUserId();
-    SocketIOService.getInstance().sendMessageChatSpace(currentUserId, key, value);
   }
 }
 

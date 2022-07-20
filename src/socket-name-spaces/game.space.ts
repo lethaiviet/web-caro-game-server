@@ -1,14 +1,14 @@
-import ChatWorker from '@/socket-workers/chat.worker';
+import GameWorker from '@/socket-workers/game.worker';
 import { Socket } from 'socket.io';
 
-class ChatSpace {
+class GameSpace {
   initConnection(socket: Socket) {
     try {
-      new ChatWorker(socket);
+      new GameWorker(socket);
     } catch (error) {
       socket.emit('error', error);
     }
   }
 }
 
-export default new ChatSpace();
+export default new GameSpace();

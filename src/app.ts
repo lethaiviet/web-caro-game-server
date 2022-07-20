@@ -17,6 +17,7 @@ import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
 import { ASSETS_FOLDER } from './utils/fileUtils';
 import ChatSpace from './socket-name-spaces/chat.space';
+import GameSpace from './socket-name-spaces/game.space';
 import socketAuthMiddleware from './middlewares/socketAuth.middleware';
 import { SocketIOService } from './services/socketio.service';
 
@@ -89,6 +90,7 @@ class App {
 
   private initializeSocketio() {
     this.socketControl.of('/chat').use(socketAuthMiddleware).on('connection', ChatSpace.initConnection);
+    this.socketControl.of('/game').use(socketAuthMiddleware).on('connection', GameSpace.initConnection);
   }
 
   private initializeSwagger() {

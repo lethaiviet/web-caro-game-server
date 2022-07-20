@@ -36,16 +36,16 @@ export class SocketIOService {
     return SocketIOService.server;
   }
 
-  public sendMessage(spacename: string, roomId: string | string[], key: SocketServerEventsName, message: any) {
-    this.getSocketControl().of(spacename).to(roomId).emit(key, message);
+  public sendData(spacename: string, roomId: string | string[], key: SocketServerEventsName, data: any) {
+    if (this.ready()) this.getSocketControl().of(spacename).to(roomId).emit(key, data);
   }
 
-  public sendMessageChatSpace(roomId: string | string[], key: SocketServerEventsName, message: any) {
-    if (this.ready()) this.getSocketControl().of('/chat').to(roomId).emit(key, message);
+  public sendDataToChatSpace(roomId: string | string[], key: SocketServerEventsName, data: any) {
+    this.sendData('/chat', roomId, key, data);
   }
 
-  public sendMessageAllChatSpace(event: SocketServerEventsName, data: any) {
-    if (this.ready()) this.getSocketControl().of('/chat').emit(event, data);
+  public sendDataToGameSpace(roomId: string | string[], key: SocketServerEventsName, data: any) {
+    this.sendData('/game', roomId, key, data);
   }
 
   public checkExistRoomChatSpace(roomName: string) {
