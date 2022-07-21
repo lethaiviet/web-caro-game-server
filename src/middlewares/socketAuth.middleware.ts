@@ -6,7 +6,6 @@ import { Socket } from 'socket.io';
 import { SocketClientEvents, InterServerEvents, SocketServerEvents, SocketData } from '@/interfaces/socket.interface';
 
 const socketAuthMiddleware = async (socket: Socket<SocketClientEvents, SocketServerEvents, InterServerEvents, SocketData>, next: NextFunction) => {
-  console.log('midlleware socketAuth');
   try {
     const cookieStr = socket.handshake.headers.cookie || 'Authorization=';
     const Authorization = cookie.parse(cookieStr)['Authorization'];

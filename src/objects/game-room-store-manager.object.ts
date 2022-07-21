@@ -23,7 +23,16 @@ class GameRoomStoreManager {
     if (findRoomIdx < 0) return;
 
     this.rooms[findRoomIdx].leaveRoom(userId);
-    this.removeRoomIfEmpty(roomId);
+
+    if (this.rooms[findRoomIdx].isEmptyRoom()) {
+      this.removeRoom(roomId);
+    }
+  }
+
+  public acceptStartingGame(roomId: string, userId: string, isReady: boolean): GameRoom {
+    const findRoom = this.getRoom(roomId);
+    findRoom.acceptStartingGame(userId, isReady);
+    return findRoom;
   }
 
   public getRoomIdx(roomId: string) {
@@ -34,12 +43,18 @@ class GameRoomStoreManager {
     return this.rooms;
   }
 
+  public getRoom(roomId: string) {
+    const findRoomIdx = this.getRoomIdx(roomId);
+    if (findRoomIdx < 0) throw Error("The room isn't exsist");
+    return this.rooms[findRoomIdx];
+  }
+
   private publicRoom(gameRoomStore: GameRoomStore) {
     this.rooms.push(gameRoomStore);
   }
 
-  private removeRoomIfEmpty(roomId: string) {
-    this.rooms = this.rooms.filter(room => room._id === roomId && room.isEmptyRoom());
+  private removeRoom(roomId: string) {
+    this.rooms = this.rooms.filter(room => room._id !== roomId);
   }
 }
 

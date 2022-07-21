@@ -1,10 +1,10 @@
-import { GameRoom } from '@/interfaces/game-rooms.interface';
+import { GameRoom, Player } from '@/interfaces/game-rooms.interface';
 import { v4 as uuidv4 } from 'uuid';
 
 class GameRoomStore implements GameRoom {
   _id: string;
   name: string;
-  players: string[];
+  players: Player[];
   spectators: string[];
   createdAt: number;
   isStarted: boolean;
@@ -30,12 +30,30 @@ class GameRoomStore implements GameRoom {
 
   public leaveRoom(userId: string): void {
     if (!this.isJoinedRoom(userId)) return;
-
     if (this.isInPlayerRoom(userId)) {
-      this.players = this.players.filter(id => id === userId);
+      this.leavePlayerRoom(userId);
     } else {
-      this.spectators = this.spectators.filter(id => id === userId);
+      this.leaveSpectatorRoom(userId);
     }
+  }
+
+  public leaveSpectatorRoom(userId: string): void {
+    this.spectators = this.spectators.filter(id => id !== userId);
+  }
+
+  public leavePlayerRoom(userId: string): void {
+    this.players = this.players.filter(player => player._id !== userId);
+  }
+
+  public acceptStartingGame(userId: string, isReady: boolean): void {
+    this.players = this.players.map(player => {
+      if (player._id === userId) {
+        player.isReady = isReady;
+      }
+      return player;
+    });
+
+    this.isStarted = this.players.every(player => player.isReady);
   }
 
   public isEmptyRoom(): boolean {
@@ -48,7 +66,7 @@ class GameRoomStore implements GameRoom {
   }
 
   private isInPlayerRoom(userId: string): boolean {
-    return this.players.includes(userId);
+    return this.players.some(player => player._id === userId);
   }
 
   private isInSpectatorRoom(userId: string): boolean {
@@ -64,7 +82,8 @@ class GameRoomStore implements GameRoom {
   }
 
   private joinRoomAsPlayer(userId: string): void {
-    this.players.push(userId);
+    const player: Player = { _id: userId, isReady: false };
+    this.players.push(player);
   }
 }
 

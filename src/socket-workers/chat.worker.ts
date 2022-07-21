@@ -65,7 +65,7 @@ class ChatWorker extends BaseWorker {
     const currentUserId = this.getCurrentUserId();
     const messages: AllMessagesInRoom = await this.privateChatRoomsService.getAllMessagesInRoom(currentUserId, anotherUserId);
 
-    this.sendDataToCurrentUserOnChatSpace('chat:response:get-all-private-messages-in-room', messages);
+    this.socket.emit('chat:response:get-all-private-messages-in-room', messages);
   }
 
   private async sendPrivateMessage(simpleMsg: SimpleMessage) {
