@@ -31,7 +31,7 @@ class GameRoomStore implements GameRoom {
   public leaveRoom(userId: string): void {
     if (!this.isJoinedRoom(userId)) return;
     if (this.isInPlayerRoom(userId)) {
-      this.leavePlayerRoom(userId);
+      if (!this.isStarted) this.leavePlayerRoom(userId);
     } else {
       this.leaveSpectatorRoom(userId);
     }
@@ -53,7 +53,7 @@ class GameRoomStore implements GameRoom {
       return player;
     });
 
-    this.isStarted = this.players.every(player => player.isReady);
+    this.isStarted = this.isPlayerRoomFull() && this.players.every(player => player.isReady);
   }
 
   public isEmptyRoom(): boolean {

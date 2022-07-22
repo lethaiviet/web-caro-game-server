@@ -21,6 +21,10 @@ abstract class BaseWorker {
     SocketIOService.getInstance().sendDataToGameSpace(currentUserId, key, value);
   }
 
+  protected sendDataToAllUserInRoomOnGameSpace(roomId: string, key: SocketServerEventsName, value: any) {
+    SocketIOService.getInstance().sendDataToGameSpace(roomId, key, value);
+  }
+
   protected disconnectSocket() {
     this.socket.removeAllListeners();
     this.socket.disconnect(true);

@@ -42,7 +42,7 @@ class GameWorker extends BaseWorker {
   private sendPlayForFunRoomData(roomId: string) {
     try {
       const room = GameWorker.GAME_ROOM_STORE_MANAGER.getRoom(roomId);
-      this.socket.to(roomId).emit('game:response:get-p4f-room-data', room);
+      this.sendDataToAllUserInRoomOnGameSpace(roomId, 'game:response:get-p4f-room-data', room);
     } catch (error) {
       logger.error(error);
     }
