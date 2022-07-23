@@ -1,5 +1,7 @@
-import { GameRoom, Player } from '@/interfaces/game-rooms.interface';
+import { BoardGame, GameRoom, Player, Position, Symbol } from '@/interfaces/game-rooms.interface';
+import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
+import BoardGameStore from './board-game-store.object';
 
 class GameRoomStore implements GameRoom {
   _id: string;
@@ -8,6 +10,11 @@ class GameRoomStore implements GameRoom {
   spectators: string[];
   createdAt: number;
   isStarted: boolean;
+  turnOf: string;
+  chosenPlayerIdx: number;
+  boardGame: BoardGameStore;
+  timeOut: number;
+  lastActionTime: number;
 
   constructor(name: string) {
     this._id = uuidv4().split('-')[0];
@@ -16,6 +23,8 @@ class GameRoomStore implements GameRoom {
     this.spectators = [];
     this.isStarted = false;
     this.createdAt = Date.now();
+    this.timeOut = 15;
+    this.lastActionTime = 0;
   }
 
   public joinRoom(userId: string): void {
@@ -54,10 +63,65 @@ class GameRoomStore implements GameRoom {
     });
 
     this.isStarted = this.isPlayerRoomFull() && this.players.every(player => player.isReady);
+    this.initMatch();
   }
 
   public isEmptyRoom(): boolean {
     return this.players.length === 0;
+  }
+
+  public playGame(playerId: string, pos: Position) {
+    if (playerId != this.turnOf) return;
+
+    const symbol = this.getSymbolInCurrentTurn();
+    this.boardGame.markSymbol(pos, symbol);
+    this.updateLastActionTime();
+    this.switchTurn();
+  }
+
+  public forceSwitchTurnWhenPlayerAFK() {
+    if (this.isPlayerAFK()) {
+      this.switchTurn();
+    }
+  }
+
+  private isPlayerAFK() {
+    if (this.lastActionTime === 0) return false;
+
+    return (Date.now() - this.lastActionTime) / 1000 >= this.timeOut;
+  }
+
+  private updateLastActionTime() {
+    this.lastActionTime = Date.now();
+  }
+
+  private getSymbolInCurrentTurn(): Symbol {
+    return this.players[this.chosenPlayerIdx].symbol;
+  }
+
+  private generateRandomSymbolForPlayers(): void {
+    const symbols = [Symbol.X, Symbol.O];
+    this.chosenPlayerIdx = _.random(0, 1);
+    const remainingPlayerIdx = this.chosenPlayerIdx ^ 1;
+
+    this.turnOf = this.players[this.chosenPlayerIdx]._id;
+    this.players[this.chosenPlayerIdx].symbol = symbols[this.chosenPlayerIdx];
+    this.players[remainingPlayerIdx].symbol = symbols[remainingPlayerIdx];
+  }
+
+  private switchTurn(): void {
+    this.chosenPlayerIdx = this.chosenPlayerIdx ^ 1;
+    this.turnOf = this.players[this.chosenPlayerIdx]._id;
+    console.log('switchTurn - turnof' + this.turnOf);
+  }
+
+  private initMatch(): void {
+    if (!this.isStarted) return;
+    this.generateRandomSymbolForPlayers();
+
+    const NUM_COL = 30;
+    const NUM_ROW = 15;
+    this.boardGame = new BoardGameStore(NUM_COL, NUM_ROW);
   }
 
   private isPlayerRoomFull(): boolean {
@@ -82,7 +146,7 @@ class GameRoomStore implements GameRoom {
   }
 
   private joinRoomAsPlayer(userId: string): void {
-    const player: Player = { _id: userId, isReady: false };
+    const player: Player = { _id: userId, isReady: false, symbol: Symbol.UNDEFINED };
     this.players.push(player);
   }
 }

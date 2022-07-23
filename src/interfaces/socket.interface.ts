@@ -1,5 +1,5 @@
 import { AllMessagesInRoom, DetailMessage, SimpleMessage } from './chat-messages.interface';
-import { GameRoom } from './game-rooms.interface';
+import { GameRoom, Position } from './game-rooms.interface';
 import { User, UserStates } from './users.interface';
 
 export interface SocketServerEvents {
@@ -21,6 +21,8 @@ export interface SocketClientEvents {
   'game:request:get-p4f-room-data': (roomId: string) => void;
   'game:action:accept-running-game': (roomId: string, isReady: boolean) => void;
   'game:action:leave-current-room': () => void;
+  'game:action:play-game': (roomId: string, pos: Position) => void;
+  'game:action:check-player-afk-and-switch-turn': (roomId: string) => void;
 }
 
 export type SocketServerEventsName = keyof SocketServerEvents;

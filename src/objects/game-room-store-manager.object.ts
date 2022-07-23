@@ -1,4 +1,4 @@
-import { GameRoom } from '@/interfaces/game-rooms.interface';
+import { GameRoom, Position } from '@/interfaces/game-rooms.interface';
 import GameRoomStore from './game-room-store.object';
 
 class GameRoomStoreManager {
@@ -29,6 +29,12 @@ class GameRoomStoreManager {
     }
   }
 
+  public playGame(roomId: string, userId: string, pos: Position) {
+    const findRoom = this.getRoom(roomId);
+    findRoom.playGame(userId, pos);
+    return findRoom;
+  }
+
   public acceptStartingGame(roomId: string, userId: string, isReady: boolean): GameRoom {
     const findRoom = this.getRoom(roomId);
     findRoom.acceptStartingGame(userId, isReady);
@@ -47,6 +53,12 @@ class GameRoomStoreManager {
     const findRoomIdx = this.getRoomIdx(roomId);
     if (findRoomIdx < 0) throw Error("The room isn't exsist");
     return this.rooms[findRoomIdx];
+  }
+
+  public checkAndSwitchTurn(roomId: string): GameRoom {
+    const findRoom = this.getRoom(roomId);
+    findRoom.forceSwitchTurnWhenPlayerAFK();
+    return findRoom;
   }
 
   private publicRoom(gameRoomStore: GameRoomStore) {

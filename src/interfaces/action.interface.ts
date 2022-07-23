@@ -1,7 +1,4 @@
-export interface Position {
-  x: number;
-  y: number;
-}
+import { Position } from './game-rooms.interface';
 
 export interface Action {
   _id: string;
