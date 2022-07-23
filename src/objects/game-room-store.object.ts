@@ -75,7 +75,6 @@ class GameRoomStore implements GameRoom {
 
     const symbol = this.getSymbolInCurrentTurn();
     this.boardGame.markSymbol(pos, symbol);
-    this.updateLastActionTime();
     this.switchTurn();
   }
 
@@ -110,9 +109,9 @@ class GameRoomStore implements GameRoom {
   }
 
   private switchTurn(): void {
+    this.updateLastActionTime();
     this.chosenPlayerIdx = this.chosenPlayerIdx ^ 1;
     this.turnOf = this.players[this.chosenPlayerIdx]._id;
-    console.log('switchTurn - turnof' + this.turnOf);
   }
 
   private initMatch(): void {

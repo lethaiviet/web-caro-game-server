@@ -29,8 +29,12 @@ class GameWorker extends BaseWorker {
   }
 
   private checkPlayerAFKAndSwitchTurn(roomId: string): void {
-    const gameRoom = GameWorker.GAME_ROOM_STORE_MANAGER.checkAndSwitchTurn(roomId);
-    this.socket.emit('game:response:get-p4f-room-data', gameRoom);
+    try {
+      const gameRoom = GameWorker.GAME_ROOM_STORE_MANAGER.checkAndSwitchTurn(roomId);
+      this.socket.emit('game:response:get-p4f-room-data', gameRoom);
+    } catch (error) {
+      logger.error(error);
+    }
   }
 
   private playGame(roomId: string, pos: Position): void {
