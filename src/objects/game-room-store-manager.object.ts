@@ -45,7 +45,12 @@ class GameRoomStoreManager {
     return this.rooms.findIndex(room => room._id === roomId);
   }
 
+  public removeExpiredRooms() {
+    this.rooms = this.rooms.filter(room => !room.isExpired());
+  }
+
   public getAllRooms(): GameRoom[] {
+    this.removeExpiredRooms();
     return this.rooms;
   }
 

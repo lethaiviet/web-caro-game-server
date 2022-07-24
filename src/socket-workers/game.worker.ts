@@ -7,7 +7,6 @@ import BaseWorker from './base.worker';
 class GameWorker extends BaseWorker {
   private static GAME_ROOM_STORE_MANAGER = new GameRoomStoreManager();
   private currentRoomId: string;
-  private timer: null | NodeJS.Timer;
 
   constructor(socket: Socket) {
     super(socket);

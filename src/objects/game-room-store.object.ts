@@ -9,12 +9,14 @@ class GameRoomStore implements GameRoom {
   players: Player[];
   spectators: string[];
   createdAt: number;
+  startedAt: number;
   isStarted: boolean;
   turnOf: string;
   chosenPlayerIdx: number;
   boardGame: BoardGameStore;
   timeOut: number;
   lastActionTime: number;
+  expireTime: number;
 
   constructor(name: string) {
     this._id = uuidv4().split('-')[0];
@@ -24,7 +26,9 @@ class GameRoomStore implements GameRoom {
     this.isStarted = false;
     this.createdAt = Date.now();
     this.timeOut = 15;
+    this.expireTime = 3600;
     this.lastActionTime = 0;
+    this.startedAt = 0;
   }
 
   public joinRoom(userId: string): void {
@@ -84,10 +88,20 @@ class GameRoomStore implements GameRoom {
     }
   }
 
+  public isExpired(): boolean {
+    if (!this.isStarted) return false;
+
+    return this.diffWithCurrentTimeInSeconds(this.startedAt) >= this.expireTime;
+  }
+
+  private diffWithCurrentTimeInSeconds(time: number): number {
+    return _.floor((_.now() - time) / 1000);
+  }
+
   private isPlayerAFK() {
     if (this.lastActionTime === 0) return false;
 
-    return (Date.now() - this.lastActionTime) / 1000 >= this.timeOut;
+    return this.diffWithCurrentTimeInSeconds(this.lastActionTime) >= this.timeOut;
   }
 
   private updateLastActionTime() {
@@ -121,6 +135,8 @@ class GameRoomStore implements GameRoom {
     const NUM_COL = 30;
     const NUM_ROW = 15;
     this.boardGame = new BoardGameStore(NUM_COL, NUM_ROW);
+
+    this.startedAt = _.now();
   }
 
   private isPlayerRoomFull(): boolean {
