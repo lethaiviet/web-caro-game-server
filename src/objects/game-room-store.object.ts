@@ -1,4 +1,4 @@
-import { BoardGame, GameRoom, Player, Position, Symbol } from '@/interfaces/game-rooms.interface';
+import { GameRoom, Player, Position, Symbol } from '@/interfaces/game-rooms.interface';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import BoardGameStore from './board-game-store.object';
@@ -105,7 +105,7 @@ class GameRoomStore implements GameRoom {
   }
 
   private updateLastActionTime() {
-    this.lastActionTime = Date.now();
+    this.lastActionTime = _.now();
   }
 
   private getSymbolInCurrentTurn(): Symbol {
@@ -136,6 +136,7 @@ class GameRoomStore implements GameRoom {
     const NUM_ROW = 15;
     this.boardGame = new BoardGameStore(NUM_COL, NUM_ROW);
 
+    this.updateLastActionTime();
     this.startedAt = _.now();
   }
 

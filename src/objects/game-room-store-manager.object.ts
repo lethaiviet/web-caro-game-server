@@ -51,7 +51,8 @@ class GameRoomStoreManager {
 
   public getAllRooms(): GameRoom[] {
     this.removeExpiredRooms();
-    return this.rooms;
+    const rooms = this.rooms.map(x => this.getCloneRoomWithoutBoardGame(x));
+    return rooms;
   }
 
   public getRoom(roomId: string) {
@@ -72,6 +73,11 @@ class GameRoomStoreManager {
 
   private removeRoom(roomId: string) {
     this.rooms = this.rooms.filter(room => room._id !== roomId);
+  }
+
+  private getCloneRoomWithoutBoardGame(gameRoom: GameRoomStore): GameRoom {
+    const { boardGame, ...room } = gameRoom;
+    return { ...room, boardGame: { data: [] } };
   }
 }
 
