@@ -1,12 +1,15 @@
 import { GameRoom, Position } from '@/interfaces/game-rooms.interface';
 import GameRoomStoreManager from '@/objects/game-room-store-manager.object';
+import MatchesService from '@/services/matches.service';
 import { logger } from '@/utils/logger';
+import _ from 'lodash';
 import { Socket } from 'socket.io';
 import BaseWorker from './base.worker';
 
 class GameWorker extends BaseWorker {
   private static GAME_ROOM_STORE_MANAGER = new GameRoomStoreManager();
   private currentRoomId: string;
+  private matchService = new MatchesService();
 
   constructor(socket: Socket) {
     super(socket);
@@ -17,10 +20,10 @@ class GameWorker extends BaseWorker {
   private init() {
     this.socket.on('game:acknowledgement:create-p4f-room', callback => this.createPlayForFunRoom(callback));
     this.socket.on('game:acknowledgement:join-p4f-room', (joinPlayForFunRoom, callback) => this.joinPlayForFunRoom(joinPlayForFunRoom, callback));
-    this.socket.on('game:action:accept-running-game', (roomId, isReady) => this.acceptStartingGame(roomId, isReady));
+    this.socket.on('game:action:accept-running-game', async (roomId, isReady) => await this.acceptStartingGame(roomId, isReady));
     this.socket.on('game:request:get-p4f-room-data', roomId => this.sendPlayForFunRoomData(roomId));
     this.socket.on('game:action:leave-current-room', () => this.leavePlayForFunRoom());
-    this.socket.on('game:action:play-game', (roomId, pos) => this.playGame(roomId, pos));
+    this.socket.on('game:action:play-game', async (roomId, pos) => await this.playGame(roomId, pos));
     this.socket.on('game:action:check-player-afk-and-switch-turn', roomId => this.checkPlayerAFKAndSwitchTurn(roomId));
     this.socket.on('disconnect', () => this.disconnect());
 
@@ -36,17 +39,37 @@ class GameWorker extends BaseWorker {
     }
   }
 
-  private playGame(roomId: string, pos: Position): void {
+  private async playGame(roomId: string, position: Position): Promise<void> {
     const currentPlayerId = this.getCurrentUserId();
-    GameWorker.GAME_ROOM_STORE_MANAGER.playGame(roomId, currentPlayerId, pos);
-    this.sendPlayForFunRoomData(roomId);
+    try {
+      const { isTurnOfPlayer, gameRoom } = GameWorker.GAME_ROOM_STORE_MANAGER.playGame(roomId, currentPlayerId, position);
+
+      if (isTurnOfPlayer) {
+        const player = _.find(gameRoom.players, { _id: currentPlayerId });
+        const data = {
+          roomId: gameRoom._id,
+          player,
+          position,
+        };
+
+        await this.matchService.addActionToMatch(data);
+
+        if (player.isWinner) {
+          await this.matchService.addWinnerToMatch({ roomId, playerId: player._id });
+        }
+      }
+      this.sendPlayForFunRoomData(roomId);
+    } catch (error) {
+      logger.error(error);
+    }
   }
 
-  private acceptStartingGame(roomId: string, isReady: boolean): void {
+  private async acceptStartingGame(roomId: string, isReady: boolean): Promise<void> {
     const currentPlayerId = this.getCurrentUserId();
     const gameRoom = GameWorker.GAME_ROOM_STORE_MANAGER.acceptStartingGame(roomId, currentPlayerId, isReady);
     if (gameRoom.isStarted) {
       this.boastcastPlayForFunRooms();
+      await this.matchService.createMatch(gameRoom);
     }
     this.sendPlayForFunRoomData(roomId);
   }

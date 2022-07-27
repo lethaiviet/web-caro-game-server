@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 /**
  * @method isEmpty
  * @param {String | Number | Object} value
@@ -25,4 +27,9 @@ export const getNameFromEmail = (email: string): string => {
 export const generateRandomFileName = (extname: string): string => {
   const fileName = Date.now() + '-' + Math.round(Math.random() * 1e9);
   return fileName + extname;
+};
+
+export const diffWithCurrentTimeInSeconds = (time: string) => {
+  const timestamps = new Date(time).getTime();
+  return _.floor((_.now() - timestamps) / 1000);
 };

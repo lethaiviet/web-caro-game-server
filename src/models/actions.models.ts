@@ -12,7 +12,11 @@ const actionsSchema: Schema = new Schema(
   {
     playerId: { type: Schema.Types.ObjectId, require: true, ref: 'User' },
     position: {
-      type: { x: Number, y: Number },
+      type: { r: Number, c: Number },
+      require: true,
+    },
+    symbol: {
+      type: String,
       require: true,
     },
   },

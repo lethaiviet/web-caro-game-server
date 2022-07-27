@@ -13,15 +13,20 @@ export interface Player {
   _id: string;
   isReady: boolean;
   symbol: Symbol;
+  isWinner: boolean;
 }
 
 export interface BoardGame {
   data: string[][];
+  winnerPositions: Position[];
 }
+
+export type GameRoomType = 'Rank' | 'PlayForFun';
 
 export interface GameRoom {
   _id: string;
   name: string;
+  type: GameRoomType;
   players: Player[];
   spectators: string[];
   createdAt: number;

@@ -12,7 +12,7 @@ class GameRoomStoreManager {
 
   public joinRoom(roomId: string, userId: string): GameRoom {
     const findRoomIdx = this.getRoomIdx(roomId);
-    if (findRoomIdx < 0) throw Error("Cannot join this room, it isn't exsist");
+    if (findRoomIdx < 0) throw Error(`Cannot join this room - ${roomId}, it isn't exsist`);
 
     this.rooms[findRoomIdx].joinRoom(userId);
     return this.rooms[findRoomIdx];
@@ -29,10 +29,14 @@ class GameRoomStoreManager {
     }
   }
 
-  public playGame(roomId: string, userId: string, pos: Position) {
+  public playGame(roomId: string, userId: string, pos: Position): { isTurnOfPlayer: boolean; gameRoom: GameRoom } {
     const findRoom = this.getRoom(roomId);
-    findRoom.playGame(userId, pos);
-    return findRoom;
+    const isTurnOfPlayer = findRoom.isTurnOf(userId);
+
+    if (isTurnOfPlayer) {
+      findRoom.playGame(userId, pos);
+    }
+    return { isTurnOfPlayer, gameRoom: findRoom };
   }
 
   public acceptStartingGame(roomId: string, userId: string, isReady: boolean): GameRoom {
@@ -76,8 +80,9 @@ class GameRoomStoreManager {
   }
 
   private getCloneRoomWithoutBoardGame(gameRoom: GameRoomStore): GameRoom {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { boardGame, ...room } = gameRoom;
-    return { ...room, boardGame: { data: [] } };
+    return { ...room, boardGame: { data: [], winnerPositions: [] } };
   }
 }
 

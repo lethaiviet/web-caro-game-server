@@ -1,4 +1,4 @@
-import { GameRoom, Player, Position, Symbol } from '@/interfaces/game-rooms.interface';
+import { GameRoom, GameRoomType, Player, Position, Symbol } from '@/interfaces/game-rooms.interface';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import BoardGameStore from './board-game-store.object';
@@ -17,8 +17,9 @@ class GameRoomStore implements GameRoom {
   timeOut: number;
   lastActionTime: number;
   expireTime: number;
+  type: GameRoomType;
 
-  constructor(name: string) {
+  constructor(name: string, type: GameRoomType = 'PlayForFun') {
     this._id = uuidv4().split('-')[0];
     this.name = name;
     this.players = [];
@@ -29,6 +30,7 @@ class GameRoomStore implements GameRoom {
     this.expireTime = 3600;
     this.lastActionTime = 0;
     this.startedAt = 0;
+    this.type = type;
   }
 
   public joinRoom(userId: string): void {
@@ -75,10 +77,15 @@ class GameRoomStore implements GameRoom {
   }
 
   public playGame(playerId: string, pos: Position) {
-    if (playerId != this.turnOf) return;
+    if (!this.isTurnOf(playerId)) return;
 
     const symbol = this.getSymbolInCurrentTurn();
     this.boardGame.markSymbol(pos, symbol);
+
+    const isWinner = this.boardGame.checkWin(pos, symbol);
+    this.players[this.chosenPlayerIdx].isWinner = isWinner;
+    if (isWinner) this.setExpiredTime(5);
+
     this.switchTurn();
   }
 
@@ -92,6 +99,14 @@ class GameRoomStore implements GameRoom {
     if (!this.isStarted) return false;
 
     return this.diffWithCurrentTimeInSeconds(this.startedAt) >= this.expireTime;
+  }
+
+  public isTurnOf(playerId: string): boolean {
+    return playerId === this.turnOf;
+  }
+
+  private setExpiredTime(seconds: number) {
+    this.expireTime = seconds;
   }
 
   private diffWithCurrentTimeInSeconds(time: number): number {
@@ -162,7 +177,12 @@ class GameRoomStore implements GameRoom {
   }
 
   private joinRoomAsPlayer(userId: string): void {
-    const player: Player = { _id: userId, isReady: false, symbol: Symbol.UNDEFINED };
+    const player: Player = {
+      _id: userId,
+      isReady: false,
+      symbol: Symbol.UNDEFINED,
+      isWinner: false,
+    };
     this.players.push(player);
   }
 }

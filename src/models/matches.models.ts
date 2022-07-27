@@ -17,16 +17,17 @@ const matchesSchema: Schema = new Schema(
     name: {
       type: String,
       require: true,
+      unique: true,
     },
     players: [{ type: Schema.Types.ObjectId, require: true, ref: 'User' }],
-    winner: { type: Schema.Types.ObjectId, require: true, ref: 'User' },
+    winner: { type: Schema.Types.ObjectId, ref: 'User' },
+    actions: [{ type: Schema.Types.ObjectId, ref: 'Action' }],
     totalTime: {
       type: Number,
-      require: true,
     },
   },
   schemaOptions,
 );
 
-const macherModel = model<Match & Document>('Match', matchesSchema);
-export default macherModel;
+const matcherModel = model<Match & Document>('Match', matchesSchema);
+export default matcherModel;

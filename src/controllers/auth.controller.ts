@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { CreateUserDto, VerifyAccessTokenRequestDto } from '@dtos/users.dto';
 import { RequestWithUser } from '@interfaces/auth.interface';
-import { User } from '@interfaces/users.interface';
+import { InsensitiveUserData, User } from '@interfaces/users.interface';
 import AuthService from '@services/auth.service';
 import EmailUtils from '@/utils/emailUtils';
 
