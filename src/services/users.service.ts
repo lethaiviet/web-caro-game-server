@@ -85,7 +85,9 @@ class UserService {
 
   public async uploadUserAvatar(userId: string, avatar: string, avatarLocalPath: string): Promise<void> {
     const findUser: User = await this.users.findById(userId);
-    fs.removeSync(findUser.avatarLocalPath);
+    if (findUser.avatarLocalPath !== '') {
+      fs.removeSync(findUser.avatarLocalPath);
+    }
 
     const data: UpdateUserDto = { avatar, avatarLocalPath };
     await this.updateUser(userId, data);

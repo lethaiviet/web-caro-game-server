@@ -7,6 +7,7 @@ import userModel from '@models/users.model';
 import { getNameFromEmail, isEmpty } from '@utils/util';
 import TokenService from './token.service';
 import UserService from './users.service';
+import { IS_PRODUCTION } from '@/config';
 
 class AuthService {
   public users = userModel;
@@ -59,7 +60,9 @@ class AuthService {
   }
 
   public createCookie(tokenData: TokenData): string {
-    return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn};`;
+    const sameSite = IS_PRODUCTION ? 'none' : 'true';
+    const secure = IS_PRODUCTION;
+    return `Authorization=${tokenData.token}; HttpOnly; sameSite=${sameSite}; secure=${secure}; Max-Age=${tokenData.expiresIn};`;
   }
 
   public async verifyConfirmationCode(accessToken: string): Promise<void> {
